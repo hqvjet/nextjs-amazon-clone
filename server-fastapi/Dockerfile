@@ -1,16 +1,18 @@
 # Use AWS Lambda Python 3.12 base image
 FROM public.ecr.aws/lambda/python:3.12
 
-# Set working directory
+# Lambda task root is /var/task
 WORKDIR ${LAMBDA_TASK_ROOT}
 
-COPY pyproject.toml /app/
+# Copy application source and project metadata
+COPY app/ ./app/
+COPY pyproject.toml ./
+
+# Install project (deps + package)
 RUN pip install --no-cache-dir .
 
-COPY app/ ./app/
+# Ensure Python can import from /var/task
+ENV PYTHONPATH="${LAMBDA_TASK_ROOT}"
 
-# Set Python path to include source directory
-ENV PYTHONPATH="${LAMBDA_TASK_ROOT}/src:${PYTHONPATH}"
-
-# Lambda handler
-CMD ["src.main.handler"]
+# Lambda handler (module.function)
+CMD ["app.main.handler"]

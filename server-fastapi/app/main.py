@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from mangum import Mangum
+
 from core import settings
 from routers import auth, products, categories, orders, health
 from routers import addresses, inventory
@@ -36,3 +38,5 @@ def root():
 def on_startup():
     # Ensure tables exist (idempotent)
     ensure_schema()
+
+handler = Mangum(app)

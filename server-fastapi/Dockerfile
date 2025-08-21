@@ -1,17 +1,16 @@
-FROM python:3.11-slim
+# Use AWS Lambda Python 3.12 base image
+FROM public.ecr.aws/lambda/python:3.12
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PORT=3000
-
-WORKDIR /app
+# Set working directory
+WORKDIR ${LAMBDA_TASK_ROOT}
 
 COPY pyproject.toml /app/
-RUN pip install --no-cache-dir -U pip && \
-    pip install --no-cache-dir .
+RUN pip install --no-cache-dir .
 
-COPY app /app/app
+COPY app/ ./app/
 
-EXPOSE 3000
+# Set Python path to include source directory
+ENV PYTHONPATH="${LAMBDA_TASK_ROOT}/src:${PYTHONPATH}"
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "3000"]
+# Lambda handler
+CMD ["src.main.handler"]

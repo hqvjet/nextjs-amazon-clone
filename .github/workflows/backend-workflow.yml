@@ -1,0 +1,63 @@
+name: CICD For Backend
+
+on: 
+  push:
+    branches:
+      - main
+    paths:
+      - 'server-fastapi/**'
+#   pull_request:
+#     branches:
+#       - main
+#       - develop
+#     paths:
+#       - 'server-fastapi/**'
+
+jobs:
+
+  # Build Docker Image
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Build Docker Image
+        run: |
+          docker build -t amazon_ecommerce/backend_image server-fastapi
+          echo "Docker image 'amazon_ecommerce/backend_image' built successfully."
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      - name: Push Agentic Service Image into AWS ECR
+        run: |
+          aws ecr get-login-password --region ap-northeast-1| docker login --username AWS --password-stdin ${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com
+          docker tag amazon_ecommerce/backend_image:latest ${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/amazon_ecommerce/backend_image:latest
+          docker push ${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/amazon_ecommerce/backend_image:latest
+          echo "✅ Docker image 'amazon_ecommerce/backend_image' pushed to ECR successfully."
+          sleep 10 # Wait for ECR to process the image
+
+      - name: Update Lambda Function Code from ECR
+        run: |
+          aws lambda update-function-code --function-name amazon-ecommerce-backend --image-uri ${{ secrets.ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com/amazon_ecommerce/backend_image:latest
+          echo "✅ Lambda function code updated successfully."
+
+      - name: Update Lambda Environment Variables (Non-AWS secrets only)
+        run: |
+          sleep 20 # Wait for the Lambda function to be updated
+          aws lambda update-function-configuration --function-name amazon-ecommerce-backend --environment \
+          "Variables={DATABASE_URL=${{ secrets.DATABASE_URL }}}"
+          echo "✅ Lambda environment variables updated successfully."
+
+      - name: Notify Deployment Success
+        run: echo "Deployment of Amazon E-commerce Backend completed successfully."

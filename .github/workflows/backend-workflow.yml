@@ -3,7 +3,7 @@ name: CICD For Backend
 on: 
   push:
     branches:
-      - main
+      - master
     paths:
       - 'server-fastapi/**'
 #   pull_request:

@@ -164,12 +164,12 @@ export default function Page() {
             </div>
           );
         case "_count":
-          return <>{cellValue.order}</>;
+      return <>{user._count.order}</>;
         default:
           return <>{cellValue}</>;
       }
     },
-    [handleDelete]
+    [handleDelete, router]
   );
 
   const onNextPage = React.useCallback(() => {

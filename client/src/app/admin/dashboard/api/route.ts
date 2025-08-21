@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+// Ensure this route is executed at request time on the Node.js runtime
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 import { Prisma, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 

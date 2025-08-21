@@ -12,7 +12,7 @@ COPY pyproject.toml ./
 RUN pip install --no-cache-dir .
 
 # Ensure Python can import from /var/task
-ENV PYTHONPATH="${LAMBDA_TASK_ROOT}"
+ENV PYTHONPATH="${LAMBDA_TASK_ROOT}/app:${PYTHONPATH}"
 
 # Lambda handler (module.function)
 CMD ["app.main.handler"]

@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "amazon-clone-fastapi"
+version = "0.1.0"
+description = "FastAPI backend for Next.js Amazon clone"
+authors = [{name="you"}]
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.24",
+  "pydantic>=2.6",
+  "pydantic-settings>=2.2",
+  "psycopg[binary]>=3.1",
+  "sqlalchemy>=2.0",
+  "alembic>=1.12",
+  "python-jose[cryptography]>=3.3",
+  # Fix bcrypt backend mismatch: passlib >=1.7.4 supports bcrypt>=4
+  "passlib[bcrypt]>=1.7.4",
+  "bcrypt>=4.0.1",
+  "python-multipart>=0.0.9",
+  "stripe>=9.12",
+]
+
+[tool.black]
+line-length = 100

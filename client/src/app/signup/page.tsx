@@ -9,11 +9,18 @@ import React, { useState } from "react";
 const Page = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [accountType, setAccountType] = useState<"buyer" | "seller">("buyer");
+  const [sellerDisplayName, setSellerDisplayName] = useState("");
   const { setUserInfo } = useAppStore();
   const router = useRouter();
   const handleSignup = async () => {
     if (email && password) {
-      const response = await signup(email, password);
+      const response = await signup(
+        email,
+        password,
+        accountType,
+        accountType === "seller" ? sellerDisplayName : undefined
+      );
       if (response?.username) {
         setUserInfo(response);
         router.push("/");
@@ -91,6 +98,45 @@ const Page = () => {
                   className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 />
               </div>
+              <div>
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  Account Type
+                </label>
+                <div className="flex gap-6">
+                  <label className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
+                    <input
+                      type="radio"
+                      name="accountType"
+                      checked={accountType === "buyer"}
+                      onChange={() => setAccountType("buyer")}
+                    />
+                    Buyer
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
+                    <input
+                      type="radio"
+                      name="accountType"
+                      checked={accountType === "seller"}
+                      onChange={() => setAccountType("seller")}
+                    />
+                    Seller
+                  </label>
+                </div>
+              </div>
+              {accountType === "seller" && (
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    Seller display name
+                  </label>
+                  <input
+                    type="text"
+                    value={sellerDisplayName}
+                    onChange={(e) => setSellerDisplayName(e.target.value)}
+                    className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    placeholder="Your shop name"
+                  />
+                </div>
+              )}
               <div className="flex items-start">
                 <div className="flex items-center h-5">
                   <input

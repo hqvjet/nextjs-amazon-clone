@@ -18,19 +18,36 @@ export const login = async (username: string, password: string) => {
   }
 };
 
-export const signup = async (username: string, password: string) => {
-  const result = (
-    await post(createUrl("/api/signup"), {
-      username,
-      password,
-      firstName: "demo",
-      lastName: "s",
-    }).catch(() => null)
-  )?.data;
+export const signup = async (
+  username: string,
+  password: string,
+  accountType: "buyer" | "seller" = "buyer",
+  sellerDisplayName?: string
+) => {
+  const payload: any = {
+    username,
+    password,
+    firstName: "demo",
+    lastName: "s",
+    accountType,
+  };
+  if (accountType === "seller" && sellerDisplayName) {
+    payload.sellerDisplayName = sellerDisplayName;
+  }
+  const result = (await post(createUrl("/api/signup"), payload).catch(() => null))?.data;
 
   if (!result) {
     return alert("Could not sign up");
   }
+  setStoredJwt(result.accessToken);
+  return me();
+};
+
+export const upgradeToSeller = async (displayName?: string) => {
+  const result = (
+    await post(createUrl("/api/upgrade-to-seller"), { displayName }).catch(() => null)
+  )?.data;
+  if (!result) return null;
   setStoredJwt(result.accessToken);
   return me();
 };

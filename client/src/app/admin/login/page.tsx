@@ -1,5 +1,5 @@
 "use client";
-import { login } from "@/lib/api/auth";
+import { login, upgradeToSeller } from "@/lib/api/auth";
 import { useAppStore } from "@/store/store";
 import { AxiosError } from "axios";
 import Image from "next/image";
@@ -24,6 +24,14 @@ const Page = () => {
       }
     } else {
       setToast("Email and Password is required to login.");
+    }
+  };
+
+  const handleUpgrade = async () => {
+    const me = await upgradeToSeller();
+    if (me?.username) {
+      setUserInfo(me);
+      setToast("Upgraded to seller");
     }
   };
 
@@ -115,6 +123,13 @@ const Page = () => {
                 onClick={handleSignIn}
               >
                 Sign in
+              </button>
+              <button
+                type="button"
+                className="w-full text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                onClick={handleUpgrade}
+              >
+                Upgrade my account to Seller
               </button>
             </div>
           </div>

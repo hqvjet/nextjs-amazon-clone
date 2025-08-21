@@ -14,60 +14,122 @@ import {
   SubMenu,
   sidebarClasses,
 } from "react-pro-sidebar";
+import { useAppStore } from "@/store/store";
+
+type LeafItem = { label: string; icon: React.ReactElement; link: string };
+type GroupItem = {
+  label: string;
+  icon: React.ReactElement;
+  subMenuItems: LeafItem[];
+};
+type MenuItemType = LeafItem | GroupItem;
 
 const Side = () => {
   const router = useRouter();
   const pathname = usePathname();
+  const { userInfo } = useAppStore();
   // State to keep track of the currently selected item
   const [selectedItem, setSelectedItem] = useState("/admin/dashboard");
   useEffect(() => {
     setSelectedItem(pathname);
   }, [pathname]);
-  const menuItems = [
+  const roles: string[] = Array.isArray(userInfo?.roles) ? userInfo!.roles : [];
+  const isAdmin = Boolean(userInfo?.isAdmin);
+  const isSeller = roles.includes("seller");
+
+  const baseMenu: MenuItemType[] = [
     { label: "Dashboard", icon: <FaHome />, link: "/admin/dashboard" },
-    {
-      label: "Category",
-      icon: <BiSolidCategory />,
-      subMenuItems: [
-        {
-          label: "Add Category",
-          icon: <MdAddBox />,
-          link: "/admin/category/add-category",
-        },
-        {
-          label: "All Category",
-          icon: <HiCollection />,
-          link: "/admin/category/all-category",
-        },
-        {
-          label: "Reports",
-          icon: <BsFillBarChartFill />,
-          link: "/admin/category/reports",
-        },
-      ],
-    },
-    {
-      label: "Product",
-      icon: <BsPhoneFill />,
-      subMenuItems: [
-        {
-          label: "Add Product",
-          icon: <MdAddBox />,
-          link: "/admin/products/add-product",
-        },
-        {
-          label: "All Products",
-          icon: <HiCollection />,
-          link: "/admin/products/all-products",
-        },
-        {
-          label: "Reports",
-          icon: <BsFillBarChartFill />,
-          link: "/admin/products/reports",
-        },
-      ],
-    },
-    { label: "Orders", icon: <FaShoppingCart />, link: "/admin/orders" },
+  ];
+
+  const categoryMenu: GroupItem = {
+    label: "Category",
+    icon: <BiSolidCategory />,
+    subMenuItems: [
+      {
+        label: "Add Category",
+        icon: <MdAddBox />,
+        link: "/admin/category/add-category",
+      },
+      {
+        label: "All Category",
+        icon: <HiCollection />,
+        link: "/admin/category/all-category",
+      },
+      {
+        label: "Reports",
+        icon: <BsFillBarChartFill />,
+        link: "/admin/category/reports",
+      },
+    ],
+  };
+
+  const categoryMenuForSeller: GroupItem = {
+    label: "Category",
+    icon: <BiSolidCategory />,
+    subMenuItems: [
+      {
+        label: "Add Category",
+        icon: <MdAddBox />,
+        link: "/admin/category/add-category",
+      },
+      {
+        label: "All Category",
+        icon: <HiCollection />,
+        link: "/admin/category/all-category",
+      },
+    ],
+  };
+
+  const productMenuForAdmin: GroupItem = {
+    label: "Product",
+    icon: <BsPhoneFill />,
+    subMenuItems: [
+      {
+        label: "Add Product",
+        icon: <MdAddBox />,
+        link: "/admin/products/add-product",
+      },
+      {
+        label: "All Products",
+        icon: <HiCollection />,
+        link: "/admin/products/all-products",
+      },
+      {
+        label: "Reports",
+        icon: <BsFillBarChartFill />,
+        link: "/admin/products/reports",
+      },
+    ],
+  };
+
+  const productMenuForSeller: GroupItem = {
+    label: "Product",
+    icon: <BsPhoneFill />,
+    subMenuItems: [
+      {
+        label: "Add Product",
+        icon: <MdAddBox />,
+        link: "/admin/products/add-product",
+      },
+      {
+        label: "All Products",
+        icon: <HiCollection />,
+        link: "/admin/products/all-products",
+      },
+    ],
+  };
+
+  const ordersMenu: LeafItem = {
+    label: "Orders",
+    icon: <FaShoppingCart />,
+    link: "/admin/orders",
+  };
+
+  const menuItems: MenuItemType[] = [
+    ...baseMenu,
+    ...(isAdmin ? [categoryMenu] : isSeller ? [categoryMenuForSeller] : []),
+    ...(isAdmin ? [productMenuForAdmin] : [productMenuForSeller]),
+    ordersMenu,
   ];
 
   const handleItemClick = (link: string) => {
@@ -115,11 +177,11 @@ const Side = () => {
             />
           </div>
 
-          {menuItems.map((item, index) => (
+          {menuItems.map((item: MenuItemType, index: number) => (
             <React.Fragment key={index}>
-              {item.subMenuItems ? (
+              {"subMenuItems" in item ? (
                 <SubMenu label={item.label} icon={item.icon}>
-                  {item.subMenuItems.map((subItem, subIndex) => (
+                  {item.subMenuItems.map((subItem: LeafItem, subIndex: number) => (
                     <MenuItem
                       key={subIndex}
                       onClick={() => handleItemClick(subItem.link)}

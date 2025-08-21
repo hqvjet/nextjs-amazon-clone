@@ -115,7 +115,7 @@ const Navbar = () => {
           <FiSearch />
         </button>
       </div>
-      {!userInfo ? (
+  {!userInfo ? (
         <div className="flex flex-col gap-0  justify-around cursor-pointer">
           <span className="font-semibold" onClick={() => router.push("/login")}>
             Login
@@ -145,22 +145,41 @@ const Navbar = () => {
           <PopoverContent>
             <div className="px-1 py-2">
               <div className="w-full max-w-[260px]">
-                <Listbox
-                  aria-label="Actions"
-                  onAction={(key) => {
-                    router.push(key as string);
-                    setDetailsPopover(false);
-                  }}
-                >
-                  <ListboxItem key="/my-orders">My Orders</ListboxItem>
-                  <ListboxItem
-                    key="/logout"
-                    className="text-danger"
-                    color="danger"
-                  >
-                    Logout
-                  </ListboxItem>
-                </Listbox>
+                {(() => {
+                  type ActionItem = {
+                    key: string;
+                    label: string;
+                    color?: "default" | "primary" | "secondary" | "success" | "warning" | "danger";
+                    className?: string;
+                  };
+                  const actions: ActionItem[] = [];
+                  const roles: string[] = Array.isArray(userInfo?.roles)
+                    ? userInfo.roles
+                    : [];
+                  const isSeller = roles.includes("seller");
+                  const isAdmin = Boolean(userInfo?.isAdmin);
+                  if (isSeller || isAdmin) {
+                    actions.push({ key: "/admin/dashboard", label: "Dashboard" });
+                  }
+                  actions.push({ key: "/my-orders", label: "My Orders" });
+                  actions.push({ key: "/logout", label: "Logout", color: "danger", className: "text-danger" });
+                  return (
+                    <Listbox
+                      aria-label="Actions"
+                      onAction={(key) => {
+                        router.push(key as string);
+                        setDetailsPopover(false);
+                      }}
+                      items={actions}
+                    >
+                      {(item: ActionItem) => (
+                        <ListboxItem key={item.key} className={item.className} color={item.color as any}>
+                          {item.label}
+                        </ListboxItem>
+                      )}
+                    </Listbox>
+                  );
+                })()}
               </div>
             </div>
           </PopoverContent>

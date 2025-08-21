@@ -1,12 +1,14 @@
 import axios from "axios";
 
-const apiUrl = "http://localhost:3000";
+// Use env var when available, fallback to localhost for dev
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 const jwtKey = "accessToken";
 
 axios.interceptors.request.use(
   (config) => {
-    const { origin } = new URL(config.url as string);
-    const allowedOrigins = [apiUrl];
+  const url = new URL(config.url as string, apiUrl);
+  const origin = url.origin;
+  const allowedOrigins = [new URL(apiUrl).origin];
     const accessToken = localStorage.getItem(jwtKey);
     if (allowedOrigins.includes(origin)) {
       config.headers.authorization = `Bearer ${accessToken}`;

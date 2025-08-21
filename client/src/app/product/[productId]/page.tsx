@@ -10,6 +10,7 @@ import { FaCaretDown } from "react-icons/fa";
 import { PaymentInfo } from "./components/payment-info";
 import { getProductDetails } from "@/lib/api/products";
 import { ProductType } from "@/utils/types";
+import { Reviews } from "./components/reviews";
 
 const Page = ({ params: { productId } }: { params: { productId: string } }) => {
   const [productDetails, setProductDetails] = useState<ProductType | undefined>(
@@ -95,7 +96,7 @@ const Page = ({ params: { productId } }: { params: { productId: string } }) => {
           </div>
           <div>
             {/* <ReviewBars /> */}
-            {/* <Reviews /> */}
+            <Reviews productId={productId} />
           </div>
         </>
       )}

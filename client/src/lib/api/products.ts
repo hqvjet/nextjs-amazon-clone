@@ -12,8 +12,8 @@ export const addProduct = async (data: any) => {
 
 export const updateProduct = async (data: any, id: string) => {
   try {
-    const response = await patch(createUrl(`/api/products/${id}`), { data });
-    return response.status === 201 ? true : false;
+  const response = await patch(createUrl(`/api/products/${id}`), { ...data });
+  return response.status === 200 ? true : false;
   } catch (error) {
     console.log({ error });
   }

@@ -62,9 +62,16 @@ const Layouts = ({ children }: { children: React.ReactNode }) => {
       if (!userInfo) {
         setToast("Please Login.");
         router.push("/admin/login");
-      } else if (!userInfo.isAdmin) {
-        setToast("Login with Admin user.");
-        router.push("/");
+      } else {
+        const isAdmin = Boolean(userInfo.isAdmin);
+        const roles: string[] = Array.isArray(userInfo.roles)
+          ? userInfo.roles
+          : [];
+        const isSeller = roles.includes("seller");
+        if (!isAdmin && !isSeller) {
+          setToast("Only Admin or Seller may access dashboard.");
+          router.push("/");
+        }
       }
     }
   }, [pathname, isLoaded, userInfo, setToast, router]);

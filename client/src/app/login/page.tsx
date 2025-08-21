@@ -21,7 +21,12 @@ const Page = () => {
       }
       if (response?.username) {
         setUserInfo(response);
-        router.push("/");
+        const roles: string[] = Array.isArray(response.roles)
+          ? response.roles
+          : [];
+        const isSeller = roles.includes("seller");
+        const isAdmin = Boolean(response.isAdmin);
+        router.push(isAdmin || isSeller ? "/admin/dashboard" : "/");
       }
     } else {
       setToast("Email and Password is required to login.");

@@ -30,22 +30,20 @@ const Page = () => {
   }, [cartProducts]);
 
   const handleCheckoutRedirect = () => {
-    const data = {
-      products: {
-        connect: products.map((product) => {
-          return { id: product.id };
-        }),
-      },
-
-      user: {
-        id: userInfo.id,
-      },
+    const subtotal = getTotalAmount();
+    const shipping = primeShipping ? 40 : 0;
+    const items = cartProducts.map((cp) => ({ id: cp.id, quantity: cp.quantity }));
+    const data: any = {
+      items,
       status: {
         paymentMode: isCod ? "cash-on-delivery" : "stripe",
       },
       paymentIntent: "",
-      price: getTotalAmount() + (primeShipping ? 40 : 0),
+      price: subtotal + shipping,
     };
+    if (userInfo?.id) {
+      data.user = { id: userInfo.id };
+    }
     setOrdersInfo(data);
     router.push("/checkout");
   };

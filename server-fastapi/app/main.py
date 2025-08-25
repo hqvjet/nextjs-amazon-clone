@@ -8,7 +8,7 @@ from routers import addresses, inventory
 from routers import comments, sellers
 from db.database import ensure_schema
 
-app = FastAPI(title="Amazon Clone FastAPI")
+app = FastAPI(title="Amazon Clone FastAPI", redirect_slashes=False)
 
 app.add_middleware(
     CORSMiddleware,

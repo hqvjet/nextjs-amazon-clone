@@ -25,7 +25,8 @@ def to_out(p: models.Product) -> ProductOut:
     )
 
 
-@router.post("/", response_model=ProductOut, status_code=201)
+@router.post("", response_model=ProductOut, status_code=201)
+@router.post("/", response_model=ProductOut, status_code=201, include_in_schema=False)
 def create_product(
     body: ProductCreate,
     db: Session = Depends(get_db),
@@ -61,7 +62,8 @@ def create_product(
     return to_out(m)
 
 
-@router.get("/", response_model=List[ProductOut])
+@router.get("", response_model=List[ProductOut])
+@router.get("/", response_model=List[ProductOut], include_in_schema=False)
 def list_products(request: Request, db: Session = Depends(get_db)):
     q = db.query(models.Product)
     qp = request.query_params

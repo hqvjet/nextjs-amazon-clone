@@ -35,7 +35,8 @@ def list_comments(product_id: str, db: Session = Depends(get_db)):
     return [to_out(r) for r in rows]
 
 
-@router.post("/", response_model=CommentOut, status_code=201)
+@router.post("", response_model=CommentOut, status_code=201)
+@router.post("/", response_model=CommentOut, status_code=201, include_in_schema=False)
 def create_comment(
     body: CommentCreate,
     db: Session = Depends(get_db),

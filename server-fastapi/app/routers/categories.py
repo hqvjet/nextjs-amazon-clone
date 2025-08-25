@@ -14,6 +14,7 @@ router = APIRouter(prefix="/categories")
 
 
 @router.post("", response_model=CategoryOut, status_code=201)
+@router.post("/", response_model=CategoryOut, status_code=201, include_in_schema=False)
 def create_category(body: CategoryIn, db: Session = Depends(get_db)):
     import uuid
 
@@ -25,6 +26,7 @@ def create_category(body: CategoryIn, db: Session = Depends(get_db)):
 
 
 @router.get("", response_model=List[CategoryOut])
+@router.get("/", response_model=List[CategoryOut], include_in_schema=False)
 def list_categories(db: Session = Depends(get_db)):
     rows = db.query(models.Category).all()
     return [CategoryOut(id=r.id, name=r.name) for r in rows]

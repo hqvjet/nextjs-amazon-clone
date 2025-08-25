@@ -25,7 +25,8 @@ class AddressOut(AddressIn):
     id: str
 
 
-@router.post("/", response_model=AddressOut, status_code=201)
+@router.post("", response_model=AddressOut, status_code=201)
+@router.post("/", response_model=AddressOut, status_code=201, include_in_schema=False)
 def create_address(
     body: AddressIn,
     db: Session = Depends(get_db),

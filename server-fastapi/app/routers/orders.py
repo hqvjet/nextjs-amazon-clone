@@ -31,7 +31,8 @@ def product_to_dict(p: models.Product) -> dict:
     }
 
 
-@router.post("/", response_model=dict)
+@router.post("", response_model=dict)
+@router.post("/", response_model=dict, include_in_schema=False)
 def create_order(
     body: OrderCreate,
     db: Session = Depends(get_db),
@@ -108,7 +109,8 @@ def create_order(
     return {"client_secret": client_secret}
 
 
-@router.get("/", response_model=List[OrderOut])
+@router.get("", response_model=List[OrderOut])
+@router.get("/", response_model=List[OrderOut], include_in_schema=False)
 def list_orders(request: Request, db: Session = Depends(get_db)):
     from fastapi import Request  # type: ignore
 

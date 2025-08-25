@@ -20,7 +20,7 @@ app.add_middleware(
 
 app.include_router(health.router, prefix="/api", tags=["health"])
 app.include_router(auth.router, prefix="/api", tags=["auth"])
-app.include_router(categories.router, tags=["categories"])
+app.include_router(categories.router, prefix="/api", tags=["categories"])
 app.include_router(products.router, prefix="/api", tags=["products"])
 app.include_router(orders.router, prefix="/api", tags=["orders"])
 app.include_router(addresses.router, prefix="/api", tags=["addresses"])

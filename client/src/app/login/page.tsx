@@ -1,5 +1,5 @@
 "use client";
-import { login, upgradeToSeller } from "@/lib/api/auth";
+import { login } from "@/lib/api/auth";
 import { useAppStore } from "@/store/store";
 import { AxiosError } from "axios";
 import Image from "next/image";
@@ -41,14 +41,7 @@ const Page = () => {
     }
   };
 
-  const handleUpgrade = async () => {
-    const upgraded = await upgradeToSeller();
-    if (upgraded?.username) {
-      setUserInfo(upgraded);
-      setToast("Upgraded to seller");
-      router.push("/admin/dashboard");
-    }
-  };
+  // Seller upgrade moved to navbar account box
 
   return (
     <section className="bg-gray-50 dark:bg-gray-900">
@@ -175,13 +168,6 @@ const Page = () => {
                   className="w-full bg-gradient-to-b from-yellow-300 to-yellow-400 hover:from-yellow-400 hover:to-yellow-500 text-gray-900 border border-yellow-500 rounded-lg text-sm font-medium py-2.5 shadow-sm hover:shadow focus:ring-2 focus:ring-yellow-500 focus:outline-none transition"
                 >
                   Create your Amazon account
-                </button>
-                <button
-                  type="button"
-                  onClick={handleUpgrade}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium py-2.5 shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none transition"
-                >
-                  Upgrade to Seller
                 </button>
               </div>
               <p className="text-xs text-gray-500 text-center pt-2 dark:text-gray-400">

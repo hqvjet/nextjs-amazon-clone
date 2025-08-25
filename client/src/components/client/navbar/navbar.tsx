@@ -5,6 +5,7 @@ import { FiSearch } from "react-icons/fi";
 import { BiChevronDown } from "react-icons/bi";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/store";
+import { upgradeToSeller } from "@/lib/api/auth";
 import {
   Listbox,
   ListboxItem,
@@ -25,7 +26,7 @@ type CategoryType = {
 };
 
 const Navbar = () => {
-  const { cartProducts, userInfo } = useAppStore();
+  const { cartProducts, userInfo, setUserInfo, setToast } = useAppStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [categories, setCategories] = useState<CategoryType[]>([]);
   const [categoriesPopover, setcategoriesPopover] = useState(false);
@@ -169,12 +170,30 @@ const Navbar = () => {
                   if (isSeller || isAdmin) {
                     actions.push({ key: "/admin/dashboard", label: "Dashboard" });
                   }
+                  if (!isSeller && !isAdmin) {
+                    actions.push({ key: "__upgrade_seller__", label: "Upgrade to Seller" });
+                  }
                   actions.push({ key: "/my-orders", label: "My Orders" });
                   actions.push({ key: "/logout", label: "Logout", color: "danger", className: "text-danger" });
                   return (
                     <Listbox
                       aria-label="Actions"
                       onAction={(key) => {
+                        if (key === "__upgrade_seller__") {
+                          (async () => {
+                            const displayName = prompt("Enter your seller display name") || undefined;
+                            const upgraded = await upgradeToSeller(displayName);
+                            if (upgraded?.username) {
+                              setUserInfo(upgraded);
+                              setToast("Upgraded to seller");
+                              router.push("/admin/dashboard");
+                            } else {
+                              setToast("Upgrade failed");
+                            }
+                          })();
+                          setDetailsPopover(false);
+                          return;
+                        }
                         router.push(key as string);
                         setDetailsPopover(false);
                       }}

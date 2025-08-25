@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db.database import get_db
 from db import models
@@ -8,46 +8,48 @@ from passlib.context import CryptContext
 from jose import jwt, JWTError
 from typing import Optional
 from pydantic import BaseModel
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from datetime import datetime, timezone
 
 router = APIRouter()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+security = HTTPBearer(auto_error=False)
 
 
 def create_token(user: models.User) -> str:
-    payload = {"sub": user.id, "username": user.username, "roles": user.roles or []}
-    token = jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm="HS256")
-    return token
+    # Include standard claims (sub, roles, username, exp)
+    exp = int((datetime.now(timezone.utc) + settings.access_token_expires).timestamp())
+    payload = {"sub": user.id, "username": user.username, "roles": user.roles or [], "exp": exp}
+    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm="HS256")
 
 
-def parse_bearer(auth_header: Optional[str]) -> Optional[str]:
-    if not auth_header:
-        return None
-    parts = auth_header.split()
-    if len(parts) == 2 and parts[0].lower() == "bearer":
-        return parts[1]
-    return None
-
-
-@router.get("/me", response_model=User)
-def me(authorization: Optional[str] = Header(default=None), db: Session = Depends(get_db)):
-    token = parse_bearer(authorization)
-    if not token:
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+):
+    if credentials is None:
         raise HTTPException(status_code=401, detail="Missing token")
+    token = credentials.credentials
     try:
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=["HS256"])
     except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
     user = db.query(models.User).filter(models.User.id == payload.get("sub")).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
+@router.get("/me", response_model=User)
+def me(current_user: models.User = Depends(get_current_user)):
     return User(
-        id=user.id,
-        username=user.username,
-        isAdmin=user.isAdmin,
-        firstName=user.firstName,
-        lastName=user.lastName,
-        roles=user.roles or [],
+        id=current_user.id,
+        username=current_user.username,
+        isAdmin=current_user.isAdmin,
+        firstName=current_user.firstName,
+        lastName=current_user.lastName,
+        roles=current_user.roles or [],
     )
 
 
@@ -116,29 +118,32 @@ class UpgradeToSellerBody(BaseModel):
 
 
 @router.post("/upgrade-to-seller", response_model=UserInfo)
-def upgrade_to_seller(body: UpgradeToSellerBody, db: Session = Depends(get_db), authorization: Optional[str] = Header(default=None)):
-    token = parse_bearer(authorization)
-    if not token:
-        raise HTTPException(status_code=401, detail="Missing token")
-    try:
-        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=["HS256"])
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    user = db.query(models.User).filter(models.User.id == payload.get("sub")).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    roles = set(user.roles or [])
+def upgrade_to_seller(
+    body: UpgradeToSellerBody,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    roles = set(current_user.roles or [])
     if "seller" in roles:
-        return UserInfo(accessToken=create_token(user), id=user.id, roles=user.roles or [], username=user.username)
+        return UserInfo(
+            accessToken=create_token(current_user),
+            id=current_user.id,
+            roles=current_user.roles or [],
+            username=current_user.username,
+        )
     roles.add("seller")
-    user.roles = list(roles)
-    # Create seller profile if not exists
-    existing = db.query(models.SellerProfile).filter(models.SellerProfile.userId == user.id).first()
+    current_user.roles = list(roles)
+    existing = db.query(models.SellerProfile).filter(models.SellerProfile.userId == current_user.id).first()
     if not existing:
-        display = body.displayName or (user.firstName or user.username)
+        display = body.displayName or (current_user.firstName or current_user.username)
         import uuid as _uuid
-        sp = models.SellerProfile(id=str(_uuid.uuid4()), userId=user.id, displayName=display)
+        sp = models.SellerProfile(id=str(_uuid.uuid4()), userId=current_user.id, displayName=display)
         db.add(sp)
     db.commit()
-    db.refresh(user)
-    return UserInfo(accessToken=create_token(user), id=user.id, roles=user.roles or [], username=user.username)
+    db.refresh(current_user)
+    return UserInfo(
+        accessToken=create_token(current_user),
+        id=current_user.id,
+        roles=current_user.roles or [],
+        username=current_user.username,
+    )

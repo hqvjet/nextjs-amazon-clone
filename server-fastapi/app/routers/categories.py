@@ -5,7 +5,8 @@ from db import models
 from typing import List
 from schemas.categories import CategoryIn, CategoryOut, CategoryPatch
 
-router = APIRouter(prefix="/categories")
+# Add explicit prefix including /api to eliminate mismatched client paths and avoid redirect chains
+router = APIRouter(prefix="/api/categories")
 
 
 @router.post("/", response_model=CategoryOut, status_code=201)

@@ -34,10 +34,10 @@ def root():
     return {"ok": True}
 
 
-@app.on_event("startup")
-def on_startup():
-    # Ensure tables exist (idempotent)
-    ensure_schema()
+# @app.on_event("startup")
+# def on_startup():
+#     # Ensure tables exist (idempotent)
+#     ensure_schema()
 
 handler = Mangum(app)
 

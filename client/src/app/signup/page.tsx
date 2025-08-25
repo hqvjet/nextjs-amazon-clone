@@ -11,10 +11,14 @@ const Page = () => {
   const [password, setPassword] = useState("");
   const [accountType, setAccountType] = useState<"buyer" | "seller">("buyer");
   const [sellerDisplayName, setSellerDisplayName] = useState("");
-  const { setUserInfo } = useAppStore();
+  const { setUserInfo, startLoading, stopLoading, isLoading } = useAppStore();
+  const loadingKey = "signup";
   const router = useRouter();
   const handleSignup = async () => {
-    if (email && password) {
+    if (!email || !password) return;
+    if (isLoading(loadingKey)) return;
+  startLoading(loadingKey, accountType === "seller" ? "Đang tạo tài khoản seller..." : "Đang tạo tài khoản...");
+    try {
       const response = await signup(
         email,
         password,
@@ -25,6 +29,8 @@ const Page = () => {
         setUserInfo(response);
         router.push("/");
       }
+    } finally {
+      stopLoading(loadingKey);
     }
   };
   return (
@@ -162,11 +168,34 @@ const Page = () => {
                 </div>
               </div>
               <button
-                type="submit"
-                className="w-full text-white bg-orange-400 hover:bg-orange-500 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                type="button"
+                disabled={isLoading(loadingKey)}
+                className="w-full flex items-center justify-center gap-2 text-white bg-orange-400 hover:bg-orange-500 disabled:opacity-60 disabled:cursor-not-allowed focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
                 onClick={handleSignup}
               >
-                Create an account
+                {isLoading(loadingKey) && (
+                  <svg
+                    className="animate-spin h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    ></path>
+                  </svg>
+                )}
+                {isLoading(loadingKey) ? "Creating..." : "Create an account"}
               </button>
               <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                 Already have an account?{" "}

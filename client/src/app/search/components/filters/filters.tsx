@@ -1,5 +1,8 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import { FaStar } from "react-icons/fa";
+import * as Select from "@radix-ui/react-select";
+import { ChevronDownIcon } from "@radix-ui/react-icons";
 
 const Filters = () => {
   const filterData = {
@@ -80,9 +83,6 @@ const Filters = () => {
 
 export default Filters;
 
-import { useState } from "react";
-import { Listbox, Transition } from "@headlessui/react";
-
 const sortingTypes = [
   { id: 1, name: "Price: Low to High" },
   { id: 2, name: "Price: High to Low" },
@@ -91,33 +91,31 @@ const sortingTypes = [
 ];
 
 function MyListbox() {
-  const [selectedPerson, setSelectedPerson] = useState(sortingTypes[0]);
-
+  const [value, setValue] = useState(sortingTypes[0].id.toString());
+  const current = sortingTypes.find((s) => s.id.toString() === value)!;
   return (
-    <Listbox value={selectedPerson} onChange={setSelectedPerson}>
-      <Listbox.Button className="bg-gray-200 p-2 rounded w-max">
-        {selectedPerson.name}
-      </Listbox.Button>
-      <Transition
-        enter="transition duration-100 ease-out"
-        enterFrom="transform scale-95 opacity-0"
-        enterTo="transform scale-100 opacity-100"
-        leave="transition duration-75 ease-out"
-        leaveFrom="transform scale-100 opacity-100"
-        leaveTo="transform scale-95 opacity-0"
-      >
-        <Listbox.Options className="bg-gray-200 mt-1 w-max p-2">
-          {sortingTypes.map((sorting) => (
-            <Listbox.Option
-              key={sorting.id}
-              value={sorting}
-              className="cursor-pointer"
-            >
-              {sorting.name}
-            </Listbox.Option>
-          ))}
-        </Listbox.Options>
-      </Transition>
-    </Listbox>
+    <Select.Root value={value} onValueChange={setValue}>
+      <Select.Trigger className="inline-flex items-center justify-between rounded bg-gray-200 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amazon-primary">
+        <Select.Value>{current.name}</Select.Value>
+        <Select.Icon>
+          <ChevronDownIcon />
+        </Select.Icon>
+      </Select.Trigger>
+      <Select.Portal>
+        <Select.Content className="overflow-hidden rounded-md bg-white shadow-lg border border-gray-200 animate-in fade-in-0 zoom-in-95">
+          <Select.Viewport className="p-1">
+            {sortingTypes.map((sorting) => (
+              <Select.Item
+                key={sorting.id}
+                value={sorting.id.toString()}
+                className="relative flex cursor-pointer select-none items-center rounded px-2 py-1.5 text-sm outline-none focus:bg-gray-100 data-[state=checked]:font-semibold"
+              >
+                <Select.ItemText>{sorting.name}</Select.ItemText>
+              </Select.Item>
+            ))}
+          </Select.Viewport>
+        </Select.Content>
+      </Select.Portal>
+    </Select.Root>
   );
 }

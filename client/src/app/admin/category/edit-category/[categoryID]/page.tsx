@@ -7,7 +7,7 @@ import {
   CardBody,
   CardFooter,
   Input,
-} from "@nextui-org/react";
+} from "@/components/ui/nextui-shim";
 import { useRouter } from "next/navigation";
 import { editCategory, getCategory } from "@/lib/api/category";
 import { useAppStore } from "@/store/store";
@@ -63,7 +63,7 @@ export default function Page({
             Save Category
           </button>
         </CardBody>
-        <CardFooter className="gap-3"></CardFooter>
+  <CardFooter className="gap-3"><></></CardFooter>
       </Card>
     </div>
   );

@@ -37,7 +37,11 @@ const ProductGrid = ({
         <h4 className="text-amazon-primary">View all</h4>
       </div>
       <div className="grid grid-cols-5 gap-5">
-        {products.map((product) => (
+        {products.map((product) => {
+          const firstImg = Array.isArray(product.images) ? product.images.find(Boolean) : undefined;
+          // If legacy blob URL (persisted earlier) and not data URL, skip it
+          const validImg = firstImg && (firstImg.startsWith("data:image") || /^https?:\/\//.test(firstImg)) ? firstImg : "/products/product1.png";
+          return (
           <div
             key={product.id}
             className="flex flex-col justify-center items-center cursor-pointer"
@@ -45,7 +49,7 @@ const ProductGrid = ({
           >
             <div className="flex flex-col items-start">
               <div className="flex justify-center mb-2 relative h-40 w-64">
-                <Image src={product.images[0]} fill alt="product" />
+                <Image src={validImg} fill alt="product" sizes="256px" />
               </div>
 
               <h3>{product.title}</h3>
@@ -66,7 +70,7 @@ const ProductGrid = ({
               <div className="text-green-500 font-semibold">In stock</div>
             </div>
           </div>
-        ))}
+  );})}
       </div>
     </div>
   );

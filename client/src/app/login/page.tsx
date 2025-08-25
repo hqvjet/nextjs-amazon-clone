@@ -1,5 +1,5 @@
 "use client";
-import { login } from "@/lib/api/auth";
+import { login, upgradeToSeller } from "@/lib/api/auth";
 import { useAppStore } from "@/store/store";
 import { AxiosError } from "axios";
 import Image from "next/image";
@@ -13,13 +13,21 @@ const Page = () => {
   const { setUserInfo, setToast } = useAppStore();
   const router = useRouter();
 
+  const { startLoading, stopLoading, isLoading } = useAppStore();
+  const loadingKey = "login";
+
   const handleSignIn = async () => {
-    if (email && password) {
+    if (!email || !password) {
+      setToast("Email and Password is required to login.");
+      return;
+    }
+    if (isLoading(loadingKey)) return;
+  startLoading(loadingKey, "Đang đăng nhập... Vui lòng chờ");
+    try {
       const response = await login(email, password);
       if (response instanceof AxiosError) {
-        setToast(response?.response?.data.message);
-      }
-      if (response?.username) {
+        setToast(response?.response?.data.message || "Login failed");
+      } else if (response?.username) {
         setUserInfo(response);
         const roles: string[] = Array.isArray(response.roles)
           ? response.roles
@@ -28,8 +36,17 @@ const Page = () => {
         const isAdmin = Boolean(response.isAdmin);
         router.push(isAdmin || isSeller ? "/admin/dashboard" : "/");
       }
-    } else {
-      setToast("Email and Password is required to login.");
+    } finally {
+      stopLoading(loadingKey);
+    }
+  };
+
+  const handleUpgrade = async () => {
+    const upgraded = await upgradeToSeller();
+    if (upgraded?.username) {
+      setUserInfo(upgraded);
+      setToast("Upgraded to seller");
+      router.push("/admin/dashboard");
     }
   };
 
@@ -47,7 +64,7 @@ const Page = () => {
             width={150}
           />
         </a>
-        <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+  <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
           <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
             <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
               Sign in to your account
@@ -116,20 +133,59 @@ const Page = () => {
               </div>
 
               <button
-                type="submit"
-                className="w-full text-white bg-orange-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                type="button"
+                disabled={isLoading(loadingKey)}
+                className={`w-full flex items-center justify-center gap-2 text-white bg-orange-400 disabled:opacity-60 disabled:cursor-not-allowed hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
                 onClick={handleSignIn}
               >
-                Sign in
+                {isLoading(loadingKey) && (
+                  <svg
+                    className="animate-spin h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    ></path>
+                  </svg>
+                )}
+                {isLoading(loadingKey) ? "Signing in..." : "Sign in"}
               </button>
-              <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-                Don&apos;t have an account?{" "}
-                <Link
-                  href="/signup"
-                  className="font-medium text-primary-600 hover:underline dark:text-primary-500"
+              {/* Amazon style divider */}
+              <div className="relative flex items-center justify-center my-4">
+                <span className="flex-1 h-px bg-gray-300" />
+                <span className="px-3 text-xs text-gray-500 uppercase tracking-wide">New to Amazon?</span>
+                <span className="flex-1 h-px bg-gray-300" />
+              </div>
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => router.push("/signup")}
+                  className="w-full bg-gradient-to-b from-yellow-300 to-yellow-400 hover:from-yellow-400 hover:to-yellow-500 text-gray-900 border border-yellow-500 rounded-lg text-sm font-medium py-2.5 shadow-sm hover:shadow focus:ring-2 focus:ring-yellow-500 focus:outline-none transition"
                 >
-                  Signup here
-                </Link>
+                  Create your Amazon account
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUpgrade}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium py-2.5 shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none transition"
+                >
+                  Upgrade to Seller
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 text-center pt-2 dark:text-gray-400">
+                By continuing, you agree to Amazon&apos;s <a href="#" className="text-blue-600 hover:underline">Conditions of Use</a> and <a href="#" className="text-blue-600 hover:underline">Privacy Notice</a>.
               </p>
             </div>
           </div>

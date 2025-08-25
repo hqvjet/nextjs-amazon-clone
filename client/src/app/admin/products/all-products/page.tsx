@@ -21,15 +21,15 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-} from "@nextui-org/react";
+} from "@/components/ui/nextui-shim";
 
 import { columns } from "./data";
 import { FaEdit, FaPlus, FaSearch, FaTrashAlt } from "react-icons/fa";
-import { deleteProduct, getAllProducts } from "@/lib/api/products";
+import { deleteProduct, getAllProducts, getMySellerProducts } from "@/lib/api/products";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/store";
 
-type User = any;
+// Removed conflicting User alias (was shadowing imported component name)
 
 type Product = {
   category: {
@@ -48,7 +48,7 @@ type Product = {
   title: string;
   updatedAt: string;
   variants: string[];
-  _count: { order: number };
+  _count?: { order: number };
 };
 
 export default function Page() {
@@ -60,7 +60,7 @@ export default function Page() {
 
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
-    column: "age",
+    column: "title",
     direction: "ascending",
   });
 
@@ -76,9 +76,24 @@ export default function Page() {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      // Prefer seller-specific products if current user is a seller (or admin acting as seller)
+      // We'll optimistically try seller endpoint first; if 403/401 fallback to all products (admin view)
+      try {
+        const mine = await getMySellerProducts();
+        if (mine && Array.isArray(mine)) {
+          setProducts(
+            mine.map((p: any) => ({ ...p, _count: p._count || { order: 0 } }))
+          );
+          return;
+        }
+      } catch (e) {
+        // ignore and fallback
+      }
       const response = await getAllProducts();
       if (response) {
-        setProducts(response);
+        setProducts(
+          response.map((p: any) => ({ ...p, _count: p._count || { order: 0 } }))
+        );
       }
     };
     fetchProducts();
@@ -86,7 +101,7 @@ export default function Page() {
 
   const handleDelete = React.useCallback(
     (product: Product) => {
-      if (product?._count?.order > 0) {
+      if ((product._count?.order ?? 0) > 0) {
         setToast("Cannot delete product with orders.");
       } else {
         setdeleteId(product.id);
@@ -129,14 +144,28 @@ export default function Page() {
   }, [page, filteredItems, rowsPerPage]);
 
   const sortedItems = React.useMemo(() => {
-    return [...items].sort((a: User, b: User) => {
-      const first = a[sortDescriptor.column as keyof User] as number;
-      const second = b[sortDescriptor.column as keyof User] as number;
-      const cmp = first < second ? -1 : first > second ? 1 : 0;
-
+    const col = sortDescriptor.column as string;
+    const arr = [...items];
+    if (!arr.length) return arr;
+    if (!Object.prototype.hasOwnProperty.call(arr[0], col)) return arr; // skip unknown column
+    const sorted = arr.sort((a: any, b: any) => {
+      const first = a[col];
+      const second = b[col];
+      let cmp = 0;
+      if (typeof first === "number" && typeof second === "number") cmp = first - second;
+      else if (typeof first === "string" && typeof second === "string") cmp = first.localeCompare(second);
       return sortDescriptor.direction === "descending" ? -cmp : cmp;
     });
+    return sorted;
   }, [sortDescriptor, items]);
+
+  useEffect(() => {
+    if (sortedItems.length) {
+      // Debug: verify table data
+      // eslint-disable-next-line no-console
+      console.log("[AdminProducts] sortedItems", sortedItems);
+    }
+  }, [sortedItems]);
 
   const renderCell = React.useCallback(
     (user: Product, columnKey: React.Key) => {
@@ -164,7 +193,7 @@ export default function Page() {
             </div>
           );
         case "_count":
-      return <>{user._count.order}</>;
+          return <>{user._count?.order ?? 0}</>;
         default:
           return <>{cellValue}</>;
       }
@@ -315,8 +344,7 @@ export default function Page() {
         selectedKeys={selectedKeys}
         selectionMode="multiple"
         sortDescriptor={sortDescriptor}
-        topContent={topContent}
-        topContentPlacement="outside"
+  topContent={topContent}
         onSelectionChange={setSelectedKeys}
         onSortChange={setSortDescriptor}
       >
@@ -334,9 +362,9 @@ export default function Page() {
         <TableBody emptyContent={"No products found"} items={sortedItems}>
           {(item) => (
             <TableRow key={item.id}>
-              {(columnKey) => (
-                <TableCell>{renderCell(item, columnKey)}</TableCell>
-              )}
+              {headerColumns.map((col) => (
+                <TableCell key={col.uid}>{renderCell(item, col.uid)}</TableCell>
+              ))}
             </TableRow>
           )}
         </TableBody>

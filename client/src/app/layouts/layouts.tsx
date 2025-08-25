@@ -1,12 +1,17 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { ToastContainer, ToastOptions, toast } from "react-toastify";
+import dynamic from "next/dynamic";
+import { ToastOptions, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import AdminLayout from "./admin-layout";
 import ClientStoreLayout from "./client-store-layout";
 import { useAppStore } from "@/store/store";
 import { me } from "@/lib/api/auth";
-import "react-toastify/dist/ReactToastify.css";
+const ToastContainer = dynamic(
+  async () => (await import("react-toastify")).ToastContainer,
+  { ssr: false }
+);
 import { AxiosError } from "axios";
 
 const Layouts = ({ children }: { children: React.ReactNode }) => {
@@ -53,15 +58,11 @@ const Layouts = ({ children }: { children: React.ReactNode }) => {
   }, [userInfo, setToast, setUserInfo]);
 
   useEffect(() => {
-    if (
-      isLoaded &&
-      pathname.includes("/admin") &&
-      pathname !== "/admin/login" &&
-      pathname !== "/admin/logout"
-    ) {
+    if (isLoaded && pathname.includes("/admin")) {
       if (!userInfo) {
         setToast("Please Login.");
-        router.push("/admin/login");
+        // unified login route
+        router.push("/login");
       } else {
         const isAdmin = Boolean(userInfo.isAdmin);
         const roles: string[] = Array.isArray(userInfo.roles)

@@ -1,9 +1,10 @@
 import { AxiosError, AxiosResponse } from "axios";
 import { axiosDelete, createUrl, get, patch, post } from "./api-client";
 
+// Canonical paths now /api/categories (no trailing slash)
 export const addCategory = async (name: string) => {
   try {
-    const response = await post(createUrl("/api/categories/"), { name });
+    const response = await post(createUrl("/api/categories"), { name });
     return response.status === 201 ? true : false;
   } catch (error) {
     console.log({ error });
@@ -12,7 +13,7 @@ export const addCategory = async (name: string) => {
 
 export const getAllCategories = async () => {
   try {
-    const response = await get(createUrl("/api/categories/"));
+    const response = await get(createUrl("/api/categories"));
     if (response.data) {
       return response.data;
     }

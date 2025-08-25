@@ -1,12 +1,18 @@
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const ImageSlider = ({ images }: { images: string[] }) => {
-  const [selected, setSelected] = useState(images[0]);
+  const safeImages = Array.isArray(images) ? images.filter(Boolean) : [];
+  const [selected, setSelected] = useState(safeImages[0]);
+  useEffect(() => {
+    if (!safeImages.includes(selected)) {
+      setSelected(safeImages[0]);
+    }
+  }, [safeImages.join(",")]);
   return (
     <div className="flex gap-5">
       <ul className="flex flex-col gap-2">
-        {images.map((image) => (
+        {safeImages.map((image) => (
           <li
             className={`p-2 bg-gray-200 rounded-sm w-max cursor-pointer`}
             key={image}

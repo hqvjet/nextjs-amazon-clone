@@ -11,7 +11,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@nextui-org/react";
+} from "@/components/ui/nextui-shim";
 import { getAllCategories } from "@/lib/api/category";
 
 type CategoryType = {
@@ -33,15 +33,23 @@ const Navbar = () => {
 
   useEffect(() => {
     const getData = async () => {
-      const response: CategoryType[] = await getAllCategories();
-
-      const computedCategory: CategoryType[] = [];
-      response.forEach((category) => {
-        if (category._count.products > 0) {
-          computedCategory.push(category);
+      try {
+        const response: CategoryType[] | undefined | null = await getAllCategories();
+        if (!Array.isArray(response)) {
+          setCategories([]);
+          return;
         }
-      });
-      setCategories(computedCategory);
+        const computedCategory: CategoryType[] = [];
+        response.forEach((category) => {
+          if (category?._count?.products > 0) {
+            computedCategory.push(category);
+          }
+        });
+        setCategories(computedCategory);
+      } catch (err) {
+        console.error("Failed to load categories", err);
+        setCategories([]);
+      }
     };
     getData();
   }, []);

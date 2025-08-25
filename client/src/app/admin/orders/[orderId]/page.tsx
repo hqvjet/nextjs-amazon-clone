@@ -3,7 +3,7 @@
 import { getOrder, updateOrderPaymentStatus } from "@/lib/api/orders";
 import React, { useEffect, useState } from "react";
 import { Product } from "./components";
-import { Radio, RadioGroup } from "@nextui-org/react";
+import { Radio, RadioGroup } from "@/components/ui/nextui-shim";
 import { useAppStore } from "@/store/store";
 
 interface ProductType {

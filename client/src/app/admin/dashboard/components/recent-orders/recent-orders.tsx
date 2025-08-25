@@ -7,7 +7,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
-} from "@nextui-org/react";
+} from "@/components/ui/nextui-shim";
 
 const columns = [
   { name: "NAME", uid: "user" },
@@ -61,9 +61,9 @@ export default function RecentOrders({
       <TableBody items={data}>
         {(item) => (
           <TableRow key={item.id}>
-            {(columnKey) => (
-              <TableCell>{renderCell(item, columnKey as string)}</TableCell>
-            )}
+            {columns.map((col) => (
+              <TableCell key={col.uid}>{renderCell(item, col.uid)}</TableCell>
+            ))}
           </TableRow>
         )}
       </TableBody>

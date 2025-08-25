@@ -5,7 +5,7 @@ import { CategorySales } from "./components/charts/category-sales";
 import DailyRevenue from "./components/charts/daily-revenue/daily-revenue";
 import { MonthlySales } from "./components/charts/monthly-sales";
 import { RecentOrders } from "./components/recent-orders";
-import { Card, CardHeader, CardBody, Button } from "@nextui-org/react";
+import { Card, CardHeader, CardBody, Button } from "@/components/ui/nextui-shim";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 

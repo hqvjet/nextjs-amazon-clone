@@ -3,6 +3,12 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Layouts from "./layouts/layouts";
+import dynamic from "next/dynamic";
+
+const LoadingOverlay = dynamic(
+  () => import("@/components/common/loading-overlay").then(m => m.LoadingOverlay),
+  { ssr: false }
+);
 import { Providers } from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +28,7 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning={true}>
         <Providers>
           <Layouts>{children}</Layouts>
+          <LoadingOverlay />
         </Providers>
       </body>
     </html>

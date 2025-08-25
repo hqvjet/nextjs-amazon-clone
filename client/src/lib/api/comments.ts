@@ -5,6 +5,8 @@ export type Comment = {
   id: string;
   productId: string;
   userId: string;
+  username?: string | null;
+  userDisplayName?: string | null;
   content: string;
   createdAt: string;
 };
@@ -21,7 +23,7 @@ export const listProductComments = async (productId: string): Promise<Comment[]>
 };
 
 export const addComment = async (productId: string, content: string): Promise<Comment> => {
-  const res = await post(createUrl(`/api/comments/`), { productId, content });
+  const res = await post(createUrl(`/api/comments`), { productId, content });
   return res.data;
 };
 

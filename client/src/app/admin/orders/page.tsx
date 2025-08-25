@@ -15,7 +15,7 @@ import {
   Selection,
   SortDescriptor,
   Tooltip,
-} from "@nextui-org/react";
+} from "@/components/ui/nextui-shim";
 
 import { FaEye, FaSearch } from "react-icons/fa";
 
@@ -139,8 +139,6 @@ export default function Page() {
             <Chip
               className="capitalize"
               color={status.paymentMode === "stripe" ? "secondary" : "success"}
-              size="sm"
-              variant="flat"
             >
               {status.paymentMode === "stripe" ? "Stripe" : "Cash on delivery"}
             </Chip>
@@ -150,8 +148,6 @@ export default function Page() {
             <Chip
               className="capitalize"
               color={(cellValue as boolean) ? "success" : "danger"}
-              size="sm"
-              variant="flat"
             >
               {(cellValue as boolean) ? "Completed" : "Pending"}
             </Chip>
@@ -160,14 +156,10 @@ export default function Page() {
           return (
             <div className="relative flex justify-start items-center gap-2">
               <Tooltip color="primary" content="View Order">
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  className=""
-                  color="primary"
-                  onClick={() => router.push(`/admin/orders/${order.id}`)}
-                >
+                  <Button
+                    className="p-1 h-7 w-7"
+                    onClick={() => router.push(`/admin/orders/${order.id}`)}
+                  >
                   <FaEye />
                 </Button>
               </Tooltip>
@@ -313,7 +305,6 @@ export default function Page() {
         selectionMode="multiple"
         sortDescriptor={sortDescriptor}
         topContent={topContent}
-        topContentPlacement="outside"
         onSelectionChange={setSelectedKeys}
         onSortChange={setSortDescriptor}
       >
@@ -331,9 +322,9 @@ export default function Page() {
         <TableBody emptyContent={"No orders found"} items={sortedItems}>
           {(item) => (
             <TableRow key={item.id}>
-              {(columnKey) => (
-                <TableCell>{renderCell(item, columnKey)}</TableCell>
-              )}
+              {headerColumns.map((col) => (
+                <TableCell key={col.uid}>{renderCell(item, col.uid)}</TableCell>
+              ))}
             </TableRow>
           )}
         </TableBody>

@@ -1,16 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import {
-  Button,
-  Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
-  Input,
-  Select,
-  SelectItem,
-} from "@nextui-org/react";
-import { CldUploadButton } from "next-cloudinary";
+// Removed NextUI and Cloudinary components
 import { getAllCategories } from "@/lib/api/category";
 import { editProduct, getProductDetails } from "@/lib/api/products";
 import { useRouter } from "next/navigation";
@@ -129,152 +119,155 @@ const Page = ({ params: { productId } }: { params: { productId: string } }) => {
       {isLoaded && (
         <>
           <div className="m-10">
-            <Card className="p-5">
-              <CardHeader>
-                <h2 className="text-3xl">Edit Product</h2>
-              </CardHeader>
-              <CardBody>
+            <div className="bg-white rounded-md shadow p-6 border border-gray-200">
+              <div className="mb-6">
+                <h2 className="text-2xl font-semibold">Edit Product</h2>
+              </div>
+              <div>
                 <div className="grid grid-cols-2 gap-10">
-                  <Input
-                    type="text"
-                    label="Product Name"
-                    variant="bordered"
-                    labelPlacement="outside"
-                    size="lg"
-                    placeholder="Enter a product name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                  <div className="flex gap-5 items-center">
-                    <Input
+                  <div className="flex flex-col gap-1">
+                    <label className="text-sm font-medium">Product Name</label>
+                    <input
                       type="text"
-                      label="Product Description"
-                      variant="bordered"
-                      labelPlacement="outside"
-                      size="lg"
-                      placeholder="Enter product description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Enter a product name"
+                      value={name}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amazon-primary"
                     />
-                    <Button
-                      size="lg"
-                      className="mt-6"
-                      variant="ghost"
-                      color="primary"
-                      onClick={addDescription}
-                    >
-                      Add
-                    </Button>
                   </div>
-                  <Input
-                    type="number"
-                    label="Sale Price"
-                    variant="bordered"
-                    labelPlacement="outside"
-                    size="lg"
-                    placeholder="Enter sale price"
-                    value={salePrice}
-                    onChange={(e) => setSalePrice(e.target.value)}
-                  />
-                  <Input
-                    type="number"
-                    label="Discounted Price"
-                    variant="bordered"
-                    labelPlacement="outside"
-                    size="lg"
-                    placeholder="Enter discounted price"
-                    value={discountedPrice}
-                    onChange={(e) => setDiscountedPrice(e.target.value)}
-                  />
-                  <div className="flex flex-col gap-5">
-                    <div className="flex gap-5">
-                      <Input
+                  <div className="flex gap-5 items-center">
+                    <div className="flex flex-col gap-1 flex-1">
+                      <label className="text-sm font-medium">Description Bullet</label>
+                      <input
                         type="text"
-                        label="Variant"
-                        variant="bordered"
-                        labelPlacement="outside"
-                        size="lg"
-                        placeholder="Enter product variant"
-                        value={variant}
-                        onChange={(e) => setVariant(e.target.value)}
+                        placeholder="Enter product description"
+                        value={description}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amazon-primary"
                       />
-                      <Button
-                        size="lg"
-                        className="mt-6"
-                        variant="ghost"
-                        color="primary"
+                    </div>
+                    <button
+                      className="mt-6 h-10 px-4 rounded-md bg-amazon-primary text-white text-sm font-medium hover:bg-amazon-primary/90"
+                      onClick={addDescription}
+                      type="button"
+                    >Add</button>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-sm font-medium">Sale Price</label>
+                    <input
+                      type="number"
+                      placeholder="Enter sale price"
+                      value={salePrice}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSalePrice(e.target.value)}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amazon-primary"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-sm font-medium">Discounted Price</label>
+                    <input
+                      type="number"
+                      placeholder="Enter discounted price"
+                      value={discountedPrice}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDiscountedPrice(e.target.value)}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amazon-primary"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-5">
+                    <div className="flex gap-5">
+                      <div className="flex flex-col gap-1 flex-1">
+                        <label className="text-sm font-medium">Variant</label>
+                        <input
+                          type="text"
+                          placeholder="Enter product variant"
+                          value={variant}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setVariant(e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amazon-primary"
+                        />
+                      </div>
+                      <button
+                        className="mt-6 h-10 px-4 rounded-md bg-amazon-primary text-white text-sm font-medium hover:bg-amazon-primary/90"
                         onClick={addVariants}
-                      >
-                        Add
-                      </Button>
+                        type="button"
+                      >Add</button>
                     </div>
                   </div>
                   <div className="flex flex-col gap-5">
                     <div className="flex gap-5">
-                      <Input
-                        type="color"
-                        label="Add Colors"
-                        variant="bordered"
-                        size="lg"
-                        placeholder="Select color"
-                        labelPlacement="outside"
-                        value={color}
-                        onChange={(e) => setColor(e.target.value)}
-                      />
-                      <Button
-                        size="lg"
-                        className="mt-6"
-                        variant="ghost"
-                        color="primary"
+                      <div className="flex flex-col gap-1">
+                        <label className="text-sm font-medium">Add Color</label>
+                        <input
+                          type="color"
+                          value={color}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setColor(e.target.value)}
+                          className="h-10 w-20 rounded border border-gray-300 cursor-pointer"
+                        />
+                      </div>
+                      <button
+                        className="mt-6 h-10 px-4 rounded-md bg-amazon-primary text-white text-sm font-medium hover:bg-amazon-primary/90"
                         onClick={addColors}
-                      >
-                        Add
-                      </Button>
+                        type="button"
+                      >Add</button>
                     </div>
                   </div>
-                  <Select
-                    label="Select a category"
-                    className="max-w-xs"
-                    labelPlacement="outside"
-                    size="lg"
-                    placeholder="Select Category"
-                    // @ts-ignore
-                    onSelectionChange={setCategory}
-                    // @ts-ignore
-                    value={category}
-                    defaultSelectedKeys={[defaultCategory]}
-                  >
-                    {categories.map((category) => (
-                      <SelectItem key={category.value} value={category.value}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </Select>
-                  <CldUploadButton
-                    options={{ multiple: true }}
-                    // @ts-ignore
-                    onUpload={handleUpload}
-                    uploadPreset="bpqe55hm"
-                  >
-                    <span className="bg-amazon-primary py-3 mt-6  px-5 text-white text-base font-medium rounded-md cursor-pointer">
-                      Upload Images
-                    </span>
-                  </CldUploadButton>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-sm font-medium">Category</label>
+                    <select
+                      className="rounded-md border border-gray-300 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amazon-primary"
+                      value={Array.from(category)[0] || defaultCategory}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                        setCategory(new Set([e.target.value]))
+                      }
+                    >
+                      <option value="" disabled>
+                        Select Category
+                      </option>
+                      {categories.map((c) => (
+                        <option key={c.value} value={c.value}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <label className="flex flex-col gap-2 mt-6">
+                    <span className="text-sm font-medium">Product Images</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="block w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-amazon-primary file:text-white hover:file:bg-amazon-primary/90"
+                      onChange={async (e) => {
+                        const files = Array.from(e.target.files || []);
+                        if (!files.length) return;
+                        const toDataUrl = (file: File) =>
+                          new Promise<string>((resolve) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(reader.result as string);
+                            reader.readAsDataURL(file);
+                          });
+                        const urls = await Promise.all(files.map(toDataUrl));
+                        setPhotos((prev) => [...prev, ...urls]);
+                      }}
+                    />
+                  </label>
                 </div>
-              </CardBody>
-              <CardFooter>
-                <Button color="primary" size="lg" onClick={handleUpdateProduct}>
+              </div>
+              <div className="mt-6">
+                <button
+                  onClick={handleUpdateProduct}
+                  className="inline-flex items-center gap-2 rounded-md bg-amazon-primary px-6 py-3 text-white font-medium"
+                  type="button"
+                >
                   Update Product
-                </Button>
-              </CardFooter>
-            </Card>
+                </button>
+              </div>
+            </div>
           </div>
           <div className="m-10">
-            <Card className="p-5">
-              <CardHeader>
-                <h2 className="text-3xl">Preview</h2>
-              </CardHeader>
-              <CardBody>
+            <div className="bg-white rounded-md shadow p-6 border border-gray-200">
+              <div className="mb-4">
+                <h2 className="text-2xl font-semibold">Preview</h2>
+              </div>
+              <div>
                 <div
                   className="grid gap-4"
                   style={{ gridTemplateColumns: "50% 25% 25%" }}
@@ -338,8 +331,8 @@ const Page = ({ params: { productId } }: { params: { productId: string } }) => {
                     }}
                   />
                 </div>
-              </CardBody>
-            </Card>
+              </div>
+            </div>
           </div>
         </>
       )}

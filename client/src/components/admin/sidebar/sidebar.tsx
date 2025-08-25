@@ -7,13 +7,7 @@ import { BsFillBarChartFill, BsPhoneFill } from "react-icons/bs";
 import { MdAddBox } from "react-icons/md";
 import { HiCollection } from "react-icons/hi";
 import { LuLogOut } from "react-icons/lu";
-import {
-  Sidebar,
-  Menu,
-  MenuItem,
-  SubMenu,
-  sidebarClasses,
-} from "react-pro-sidebar";
+import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { useAppStore } from "@/store/store";
 
 type LeafItem = { label: string; icon: React.ReactElement; link: string };
@@ -139,81 +133,119 @@ const Side = () => {
   };
 
   return (
-    <div className="min-h-[100vh]  overflow-hidden">
-      <Sidebar
-        className="h-full overflow-hidden"
-        rootStyles={{
-          [`.${sidebarClasses.container}`]: {
-            backgroundColor: "#141B24",
-            "&:hover": {
-              backgroundColor: "#141B24",
-            },
-          },
-        }}
-      >
-        <Menu
-          className="h-[100vh] max-h-[100vh] text-white overflow-hidden"
-          menuItemStyles={{
-            button: ({ level, active, disabled }) => {
-              const backgroundColor = level === 0 ? "#141B24" : "#222e3d";
-
-              return {
-                backgroundColor: active ? "#ff9900" : backgroundColor,
-                "&:hover": {
-                  backgroundColor: active ? "#212c3a" : "#2c3a4d",
-                },
-              };
-            },
-          }}
-        >
-          <div className="flex items-center justify-center my-10">
-            <Image
-              src="/amazon-logo-white.png"
-              alt="logo"
-              height={150}
-              width={150}
-              className="cursor-pointer"
-              onClick={() => router.push("/admin/dashboard")}
-            />
+    <aside className="min-h-screen w-64 bg-[#141B24] text-white flex flex-col shadow-lg">
+      <div className="flex items-center justify-center py-8 border-b border-white/10">
+        <Image
+          src="/amazon-logo-white.png"
+          alt="logo"
+          height={120}
+          width={120}
+          className="cursor-pointer"
+          onClick={() => handleItemClick("/admin/dashboard")}
+        />
+      </div>
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1 text-sm">
+        {menuItems.map((item: MenuItemType, index: number) => (
+          <div key={index}>
+            {"subMenuItems" in item ? (
+              <CollapsibleSection
+                label={item.label}
+                icon={item.icon}
+                items={item.subMenuItems}
+                selectedItem={selectedItem}
+                onSelect={handleItemClick}
+              />
+            ) : (
+              <SidebarButton
+                active={selectedItem === item.link}
+                icon={item.icon}
+                onClick={() => handleItemClick(item.link)}
+              >
+                {item.label}
+              </SidebarButton>
+            )}
           </div>
-
-          {menuItems.map((item: MenuItemType, index: number) => (
-            <React.Fragment key={index}>
-              {"subMenuItems" in item ? (
-                <SubMenu label={item.label} icon={item.icon}>
-                  {item.subMenuItems.map((subItem: LeafItem, subIndex: number) => (
-                    <MenuItem
-                      key={subIndex}
-                      onClick={() => handleItemClick(subItem.link)}
-                      icon={subItem.icon}
-                      active={selectedItem === subItem.link}
-                    >
-                      {subItem.label}
-                    </MenuItem>
-                  ))}
-                </SubMenu>
-              ) : (
-                <MenuItem
-                  onClick={() => handleItemClick(item.link)}
-                  icon={item.icon}
-                  active={selectedItem === item.link}
-                >
-                  {item.label}
-                </MenuItem>
-              )}
-            </React.Fragment>
-          ))}
-          <MenuItem
-            onClick={() => handleItemClick("/admin/logout")}
-            icon={<LuLogOut />}
-            active={selectedItem === "/admin/logout"}
-          >
-            Logout
-          </MenuItem>
-        </Menu>
-      </Sidebar>
-    </div>
+        ))}
+        <SidebarButton
+          active={selectedItem === "/logout"}
+          icon={<LuLogOut />}
+          onClick={() => handleItemClick("/logout")}
+        >
+          Logout
+        </SidebarButton>
+      </nav>
+    </aside>
   );
 };
 
 export default Side;
+
+// --- Local UI primitives (could be moved to shared ui later) ---
+type SidebarButtonProps = {
+  active?: boolean;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+  onClick?: () => void;
+};
+
+const SidebarButton = ({ active, icon, children, onClick }: SidebarButtonProps) => (
+  <button
+    onClick={onClick}
+    className={`group w-full flex items-center gap-3 rounded-md px-3 py-2 text-left font-medium transition-colors ${
+      active
+        ? "bg-amazon-primary text-black"
+        : "text-white/80 hover:bg-white/10 hover:text-white"
+    }`}
+  >
+    <span className="text-lg">{icon}</span>
+    <span className="truncate">{children}</span>
+  </button>
+);
+
+type CollapsibleSectionProps = {
+  label: string;
+  icon: React.ReactNode;
+  items: LeafItem[];
+  selectedItem: string;
+  onSelect: (link: string) => void;
+};
+
+const CollapsibleSection = ({
+  label,
+  icon,
+  items,
+  selectedItem,
+  onSelect,
+}: CollapsibleSectionProps) => {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="select-none">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={`w-full flex items-center justify-between gap-2 rounded-md px-3 py-2 font-semibold text-left transition-colors text-white/80 hover:bg-white/10 hover:text-white`}
+      >
+        <span className="flex items-center gap-3">
+          <span className="text-lg">{icon}</span>
+          {label}
+        </span>
+        <ChevronDownIcon
+          className={`h-4 w-4 transition-transform ${open ? "rotate-180" : "rotate-0"}`}
+        />
+      </button>
+      {open && (
+        <div className="mt-1 space-y-1 pl-6">
+          {items.map((it) => (
+            <SidebarButton
+              key={it.link}
+              active={selectedItem === it.link}
+              icon={it.icon}
+              onClick={() => onSelect(it.link)}
+            >
+              {it.label}
+            </SidebarButton>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};

@@ -33,7 +33,16 @@ const Page = ({ params: { productId } }: { params: { productId: string } }) => {
             style={{ gridTemplateColumns: "50% 25% 25%" }}
           >
             <div>
-              <ImageSlider images={productDetails.images} />
+              {(() => {
+                const imgs = Array.isArray(productDetails.images)
+                  ? productDetails.images.filter(Boolean)
+                  : [];
+                const cleaned = imgs.filter(
+                  (i) => i.startsWith("data:image") || /^https?:\/\//.test(i)
+                );
+                const finalImgs = cleaned.length ? cleaned : ["/products/product1.png"];
+                return <ImageSlider images={finalImgs} />;
+              })()}
             </div>
             <div>
               <div>

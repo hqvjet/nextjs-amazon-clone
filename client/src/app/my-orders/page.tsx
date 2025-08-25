@@ -14,7 +14,7 @@ import {
   Selection,
   SortDescriptor,
   Tooltip,
-} from "@nextui-org/react";
+} from "@/components/ui/nextui-shim";
 
 import { FaEye, FaSearch } from "react-icons/fa";
 import { useAppStore } from "@/store/store";
@@ -138,8 +138,6 @@ export default function Page() {
               color={
                 statusValue.paymentMode === "stripe" ? "secondary" : "success"
               }
-              size="sm"
-              variant="flat"
             >
               {statusValue.paymentMode === "stripe"
                 ? "Stripe"
@@ -151,8 +149,6 @@ export default function Page() {
             <Chip
               className="capitalize"
               color={cellValue ? "success" : "danger"}
-              size="sm"
-              variant="flat"
             >
               {cellValue ? "Completed" : "Pending"}
             </Chip>
@@ -162,11 +158,7 @@ export default function Page() {
             <div className="relative flex justify-start items-center gap-2">
               <Tooltip color="primary" content="View Order">
                 <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  className=""
-                  color="primary"
+                  className="p-1 h-7 w-7"
                   onClick={() => router.push(`/my-orders/${order.id}`)}
                 >
                   <FaEye />
@@ -314,8 +306,7 @@ export default function Page() {
         selectedKeys={selectedKeys}
         selectionMode="multiple"
         sortDescriptor={sortDescriptor}
-        topContent={topContent}
-        topContentPlacement="outside"
+  topContent={topContent}
         onSelectionChange={setSelectedKeys}
         onSortChange={setSortDescriptor}
       >
@@ -333,9 +324,9 @@ export default function Page() {
         <TableBody emptyContent={"No orders found"} items={sortedItems}>
           {(item) => (
             <TableRow key={item.id}>
-              {(columnKey) => (
-                <TableCell>{renderCell(item, columnKey)}</TableCell>
-              )}
+              {headerColumns.map((col) => (
+                <TableCell key={col.uid}>{renderCell(item, col.uid)}</TableCell>
+              ))}
             </TableRow>
           )}
         </TableBody>

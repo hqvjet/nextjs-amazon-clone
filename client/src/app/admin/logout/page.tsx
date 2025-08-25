@@ -9,7 +9,7 @@ const Page = () => {
   useEffect(() => {
     setUserInfo(undefined);
     localStorage.clear();
-    router.push("/admin/login");
+    router.push("/logout"); // reuse central logout route logic
   }, [setUserInfo, router]);
 
   return null;

@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardHeader, CardBody } from "@nextui-org/react";
+import { Card, CardHeader, CardBody } from "@/components/ui/nextui-shim";
 
 const Stats = ({ title, data }: { title: string; data: number }) => {
   return (

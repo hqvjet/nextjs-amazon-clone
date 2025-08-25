@@ -1,31 +1,14 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
-import {
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-  Input,
-  Button,
-  Pagination,
-  Tooltip,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  useDisclosure,
-} from "@nextui-org/react";
+import { Input, Button, Pagination, Tooltip, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@/components/ui/nextui-shim";
 
 import { columns } from "./data";
 import { FaEdit, FaPlus, FaSearch, FaTrashAlt } from "react-icons/fa";
 
 import { deleteCategory, getAllCategories } from "@/lib/api/category";
-import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/store";
+import { useRouter } from "next/navigation";
 
 interface Count {
   products: number;
@@ -45,18 +28,28 @@ export default function Page() {
   const [categories, setCategories] = useState<Category[]>([]);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [deleteId, setdeleteId] = useState<string | undefined>(undefined);
-  const { setToast } = useAppStore();
+  const { setToast, startLoading, stopLoading, isLoading } = useAppStore();
 
   const router = useRouter();
   useEffect(() => {
     const getData = async () => {
-      const results = await getAllCategories();
-      if (results) {
-        setCategories(results);
+      startLoading("fetchCategories", "Đang tải danh sách danh mục...");
+      try {
+        const results = await getAllCategories();
+        if (results) {
+          // ensure _count present
+          const normalized = results.map((c: any) => ({
+            _count: { products: c._count?.products ?? 0 },
+            ...c,
+          }));
+          setCategories(normalized);
+        }
+      } finally {
+        stopLoading("fetchCategories");
       }
     };
     getData();
-  }, []);
+  }, [startLoading, stopLoading]);
 
   const handleDelete = React.useCallback(
     (category: Category) => {
@@ -70,20 +63,25 @@ export default function Page() {
 
   const confirmDelete = async () => {
     if (deleteId) {
-      const response = await deleteCategory(deleteId);
-      if (response.status === 200) {
-        const clonedCategories = [...categories];
-        const index = clonedCategories.findIndex(
-          (category) => category.id === deleteId
-        );
-        if (index !== -1) {
-          clonedCategories.splice(index, 1);
-        }
-        setCategories(clonedCategories);
-        setToast("Category deleted successfully.");
-      } else setToast("Unable to delete category.");
+      startLoading("deleteCategory", "Đang xoá danh mục...");
+      try {
+        const response = await deleteCategory(deleteId);
+        if (response.status === 200) {
+          const clonedCategories = [...categories];
+          const index = clonedCategories.findIndex(
+            (category) => category.id === deleteId
+          );
+            if (index !== -1) clonedCategories.splice(index, 1);
+          setCategories(clonedCategories);
+          setToast("Category deleted successfully.");
+        } else setToast("Unable to delete category.");
+      } finally {
+        stopLoading("deleteCategory");
+        onClose();
+      }
+    } else {
+      onClose();
     }
-    onClose();
   };
 
   const handleEdit = React.useCallback(
@@ -142,11 +140,11 @@ export default function Page() {
 
   const renderCell = React.useCallback(
     (category: Category, columnKey: string) => {
-      const cellValue = category[columnKey as ValidColumnNames];
-
+      const cellValue = category[columnKey as ValidColumnNames as keyof Category];
       switch (columnKey) {
         case "products": {
-          return <div>{category["_count"].products}</div>;
+          const count = (category as any)?._count?.products;
+          return <div>{typeof count === "number" ? count : 0}</div>;
         }
         case "actions":
           return (
@@ -215,11 +213,10 @@ export default function Page() {
             startContent={<FaSearch />}
             value={filterValue}
             onClear={() => onClear()}
-            onValueChange={onSearchChange}
+            onValueChange={onSearchChange as any}
           />
           <div className="flex gap-3">
             <Button
-              color="primary"
               endContent={<FaPlus />}
               onClick={() => router.push("/admin/category/add-category")}
             >
@@ -262,32 +259,10 @@ export default function Page() {
             ? "All items selected"
             : `${selectedKeys.size} of ${filteredItems.length} selected`}
         </span>
-        <Pagination
-          isCompact
-          showControls
-          showShadow
-          color="primary"
-          page={page}
-          total={pages}
-          onChange={setPage}
-        />
+  <Pagination page={page} total={pages} onChange={setPage} />
         <div className="hidden sm:flex w-[30%] justify-end gap-2">
-          <Button
-            isDisabled={pages === 1}
-            size="sm"
-            variant="flat"
-            onPress={onPreviousPage}
-          >
-            Previous
-          </Button>
-          <Button
-            isDisabled={pages === 1}
-            size="sm"
-            variant="flat"
-            onPress={onNextPage}
-          >
-            Next
-          </Button>
+          <Button isDisabled={pages === 1} onPress={onPreviousPage}>Previous</Button>
+          <Button isDisabled={pages === 1} onPress={onNextPage}>Next</Button>
         </div>
       </div>
     );
@@ -300,48 +275,69 @@ export default function Page() {
     onNextPage,
   ]);
 
+  const fetching = isLoading("fetchCategories");
   return (
-    <div className="p-10">
-      <Table
-        aria-label="Example table with custom cells, pagination and sorting"
-        isHeaderSticky
-        bottomContent={bottomContent}
-        bottomContentPlacement="outside"
-        classNames={{
-          wrapper: "min-h-[70vh] max-h-[70vh]",
-        }}
-        selectedKeys={selectedKeys}
-        selectionMode="multiple"
-        sortDescriptor={sortDescriptor as any}
-        topContent={topContent}
-        topContentPlacement="outside"
-        onSelectionChange={setSelectedKeys as any}
-        onSortChange={setSortDescriptor as any}
-      >
-        <TableHeader columns={headerColumns}>
-          {(column) => (
-            <TableColumn
-              key={column.uid}
-              align={column.uid === "actions" ? "center" : "start"}
-              allowsSorting={column.sortable}
+    <div className="p-10 relative">
+      {fetching && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 dark:bg-black/40">
+          <div className="flex flex-col items-center gap-3">
+            <svg
+              className="animate-spin h-7 w-7 text-orange-500"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
             >
-              {column.name}
-            </TableColumn>
-          )}
-        </TableHeader>
-        <TableBody emptyContent={"No Category found"} items={sortedItems}>
-          {(item) => (
-            <TableRow key={item.id}>
-              {(columnKey) => (
-                <TableCell>{renderCell(item, columnKey as string)}</TableCell>
-              )}
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-      <Modal backdrop="blur" isOpen={isOpen} onClose={onClose}>
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
+            </svg>
+            <span className="text-sm font-medium">Đang tải danh mục...</span>
+          </div>
+        </div>
+      )}
+      <div className="bg-white border border-gray-200 rounded-md overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-50">
+            <tr>
+              {headerColumns.map((col) => (
+                <th key={col.uid} className="px-4 py-2 text-left font-semibold text-gray-700">
+                  {col.name}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sortedItems.length === 0 && (
+              <tr>
+                <td colSpan={headerColumns.length} className="px-4 py-6 text-center text-gray-500">No Category found</td>
+              </tr>
+            )}
+            {sortedItems.map((item) => (
+              <tr key={item.id} className="border-t border-gray-100">
+                {headerColumns.map((col) => (
+                  <td key={col.uid} className="px-4 py-2">
+                    {renderCell(item, col.uid)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="p-3">{bottomContent}</div>
+      </div>
+  <Modal isOpen={isOpen} onClose={onClose}>
         <ModalContent>
-          {(onClose) => (
+          {(onClose: () => void) => (
             <>
               <ModalHeader className="flex flex-col gap-1">
                 Are you sure you want to delete the category?

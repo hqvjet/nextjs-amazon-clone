@@ -11,5 +11,7 @@ class CommentOut(BaseModel):
     id: str
     productId: str
     userId: str
+    username: str | None = None
+    userDisplayName: str | None = None
     content: str
     createdAt: str

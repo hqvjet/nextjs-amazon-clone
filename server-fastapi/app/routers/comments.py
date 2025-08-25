@@ -13,10 +13,20 @@ router = APIRouter(prefix="/comments")
 
 
 def to_out(c: models.Comment) -> CommentOut:
+    user = c.user
+    display_name = None
+    if user:
+        # Prefer first + last name, else username
+        if user.firstName or user.lastName:
+            display_name = " ".join([p for p in [user.firstName, user.lastName] if p]).strip()
+        else:
+            display_name = user.username
     return CommentOut(
         id=c.id,
         productId=c.productId,
         userId=c.userId,
+        username=user.username if user else None,
+        userDisplayName=display_name,
         content=c.content,
         createdAt=c.createdAt.isoformat(),
     )
